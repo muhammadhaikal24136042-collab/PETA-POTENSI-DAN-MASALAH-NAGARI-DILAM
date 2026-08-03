@@ -1,0 +1,27 @@
+{
+"type": "FeatureCollection",
+"name": "UMKM Nagari Dilam",
+"crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+"features": [
+{ "type": "Feature", "properties": { "Keterangan": "BengkelA", "X": 100.721776, "Y": -0.904226, "FOTO": "BengkelA.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.721776, -0.904226 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "Kerajinan Kayu", "X": 100.720753, "Y": -0.895972, "FOTO": "Kerajinan Kayu.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.720753, -0.895972 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "Konveksi", "X": 100.731442, "Y": -0.911794, "FOTO": "Konveksi.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.731442, -0.911794 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "Usaha Blok", "X": 100.723456, "Y": -0.905377, "FOTO": "Usaha Blok.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.723456, -0.905377 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "Usaha Las", "X": 100.720961, "Y": -0.896025, "FOTO": "Usaha Las.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.720961, -0.896025 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungA", "X": 100.724282, "Y": -0.907025, "FOTO": "WarungA.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.724282, -0.907025 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungB", "X": 100.724563, "Y": -0.909687, "FOTO": "WarungB.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.724563, -0.909687 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungC", "X": 100.72763, "Y": -0.896518, "FOTO": "WarungC.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.72763, -0.896518 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungD", "X": 100.720625, "Y": -0.902649, "FOTO": "WarungD.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.720625, -0.902649 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungE", "X": 100.720968, "Y": -0.899231, "FOTO": "WarungE.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.720968, -0.899231 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungF", "X": 100.720644, "Y": -0.903086, "FOTO": "WarungF.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.720644, -0.903086 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungG", "X": 100.731929, "Y": -0.913577, "FOTO": "WarungG.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.731929, -0.913577 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungH", "X": 100.731335, "Y": -0.913642, "FOTO": "WarungH.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.731335, -0.913642 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungI", "X": 100.721382, "Y": -0.896105, "FOTO": "WarungI.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.721382, -0.896105 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungJ", "X": 100.719234, "Y": -0.895411, "FOTO": "WarungJ.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.719234, -0.895411 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungK", "X": 100.728164, "Y": -0.896114, "FOTO": "WarungK.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.728164, -0.896114 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungL", "X": 100.721776, "Y": -0.904226, "FOTO": "WarungL.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.721776, -0.904226 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungM", "X": 100.719474, "Y": -0.895734, "FOTO": "WarungM.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.719474, -0.895734 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungN", "X": 100.720878, "Y": -0.898085, "FOTO": "WarungN.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.720878, -0.898085 ] } },
+{ "type": "Feature", "properties": { "Keterangan": "WarungO", "X": 100.726788, "Y": -0.897234, "FOTO": "WarungO.jpeg" }, "geometry": { "type": "Point", "coordinates": [ 100.726788, -0.897234 ] } }
+]
+}

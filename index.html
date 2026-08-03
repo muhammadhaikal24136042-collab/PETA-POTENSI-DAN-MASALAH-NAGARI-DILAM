@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PETA POTENSI DAN MASALAH DI NAGARI DILAM</title>
+    
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    
+    <!-- LEAFLET AJAX CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+
+    <style>
+        .info.legend {
+            background: rgba(255, 255, 255, 0.9);
+            padding: 10px;
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 18px;
+            color: #333;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            min-width: 150px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .info.legend h4 {
+            margin: 0 0 5px;
+            color: #777;
+            font-size: 14px;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 3px;
+        }
+        .info.legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+            border: 1px solid #999;
+        }
+        .legend-section {
+            margin-bottom: 10px;
+        }
+        .legend-section:last-child {
+            margin-bottom: 0;
+        }
+
+        #maps {
+            height: 750px;
+            width: 100%;
+        }
+
+        .label-jorong {
+            background: transparent !important;
+            border: none !important;
+            box-shadow: none !important;
+            font-weight: bold;
+            color: #2c3e50;
+            text-shadow: 2px 2px 4px rgba(255, 255, 255, 0.9), -2px -2px 4px rgba(255, 255, 255, 0.9);
+            font-size: 12px;
+        }
+
+        .custom-bangunan-icon, .custom-pin-icon {
+            background: transparent !important;
+            border: none !important;
+            display: flex !important;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .leaflet-control-layers-overlays label {
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+        }
+
+        .leaflet-control-layers-overlays label:has(span[style*="font-weight: bold"]) input[type="checkbox"] {
+            display: none !important;
+        }
+
+        .leaflet-control-layers-overlays label:has(span[style*="font-weight: bold"]) {
+            margin-left: -4px;
+            margin-top: 8px;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="maps"></div>
+
+    <script>
+        // 1. INISIALISASI BASEMAP
+        var map = L.map('maps').setView([-0.916330734071813, 100.73975708080601], 13);
+
+        var OSM = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap contributors'
+        });
+
+        var SATELIT = L.tileLayer('https://{s}.google.com/vt/lyrs=s&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        }).addTo(map);
+
+        var TERRAIN = L.tileLayer('https://{s}.google.com/vt/lyrs=p&x={x}&y={y}&z={z}', {
+            maxZoom: 20,
+            subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+        });
+
+        // 2. FUNGSI POPUP
+        function popUp(f, l) {
+            var out = [];
+            if (f.properties) {
+                for (var key in f.properties) {
+                    out.push("<b>" + key + ":</b> " + f.properties[key]);
+                }
+                l.bindPopup(out.join("<br />"));
+            }
+        }
+
+        function popUpFasilitas(f, l) {
+            var out = [];
+            if (f.properties) {
+                for (var key in f.properties) {
+                    // Abaikan kolom foto di daftar teks biasa
+                    if (key !== 'Foto_Fasilitas' && key.toUpperCase() !== 'FOTO' && key.toLowerCase() !== 'gambar') {
+                out.push("<b>" + key + ":</b> " + f.properties[key]);
+                    }
+                }
+                
+                var popupContent = out.join("<br />");
+
+                // Deteksi nama/path gambar dari atribut
+                var fotoPath = f.properties.Foto_Fasilitas || f.properties.foto || f.properties.Gambar;
+                
+                if (fotoPath && fotoPath.trim() !== "" && fotoPath !== "nama_file.jpg") {
+                    popupContent += "<br/><br/><img src='" + fotoPath + "' style='width: 100%; max-width: 200px; height: auto; border-radius: 6px; display: block; margin: 5px auto 0;' alt='Foto Lokasi' />";
+                }
+
+                var customPopup = L.popup({
+                    className: 'popup-fasilitas',
+                    closeButton: true,
+                    maxWidth: 220
+                }).setContent(popupContent);
+                
+                l.bindPopup(customPopup);
+            }
+        }
+
+        // function titik Jalan rusak 
+         function popUpJalanRusak(f, l) {
+            var out = [];
+            if (f.properties) {
+                for (var key in f.properties) {
+                   // Sembunyikan atribut Field5 agar tidak tampil sebagai teks di popup
+            if (key !== 'Field5' && key.toUpperCase() !== 'FOTO' && key.toLowerCase() !== 'gambar') {
+                out.push("<b>" + key + ":</b> " + f.properties[key]);
+            }
+        }
+                
+                var popupContent = out.join("<br />");
+
+                // Deteksi nama/path gambar dari atribut
+                var fotoPath = f.properties.Field5 || f.properties.foto || f.properties.Gambar;
+                
+                if (fotoPath && fotoPath.trim() !== "" && fotoPath !== "nama_file.jpg") {
+                    popupContent += "<br/><br/><img src='" + fotoPath + "' style='width: 100%; max-width: 200px; height: auto; border-radius: 6px; display: block; margin: 5px auto 0;' alt='Foto Lokasi' />";
+                }
+
+                var customPopup = L.popup({
+                    className: 'popup-fasilitas',
+                    closeButton: true,
+                    maxWidth: 220
+                }).setContent(popupContent);
+                
+                l.bindPopup(customPopup);
+            }
+        }
+
+
+        // 3. STYLE & HIGHLIGHT JORONG
+        function getColorJorong(d) {
+            if (!d) return 'grey';
+            var jorong = d.toUpperCase().trim();
+            switch(jorong) {
+                case 'JORONG BALAI':      return '#fbb4ae';
+                case 'JORONG BATU KARAK':  return '#b3cde3';
+                case 'JORONG KAPALO KOTO': return '#ccebc5';
+                case 'JORONG BATU SANGKA': return '#decbe4';
+                case 'JORONG BATU KIJANG': return '#fed9a6';
+                default:                   return '#e5d8bd'; 
+            }
+        }
+
+        function styleJorong(feature) {
+            var namaJorong = feature.properties.Dusun || feature.properties.Nama_Jorong || feature.properties.nama;
+            return {
+                fillColor: getColorJorong(namaJorong),
+                weight: 2,
+                opacity: 1,
+                color: 'white',
+                dashArray: '3',
+                fillOpacity: 0.6
+            };
+        }
+
+        function highlightJorong(e) {
+            var layer = e.target;
+            layer.setStyle({ weight: 5, color: '#666', dashArray: '', fillOpacity: 0.8 });
+            layer.bringToFront();
+        }
+
+        function resetHighlightJorong(e) { LayerDilam.resetStyle(e.target); }
+
+        // 4. STYLE LAHAN (KAKAO, SAWIT, KARET, PADI)
+        function getColorKesesuaianLahanKakao(d) {
+            if (!d) return 'grey';
+            var k = d.toUpperCase().trim();
+            return k === 'SESUAI' ? '#feb24c' : (k === 'TIDAK SESUAI' ? '#bd0026' : 'grey');
+        }
+        function styleKakao(feature) {
+            var val = feature.properties.Klas || feature.properties.Kelas_Kesesuaian || feature.properties.nama;
+            return { fillColor: getColorKesesuaianLahanKakao(val), weight: 1, opacity: 1, color: 'white', dashArray: '3', fillOpacity: 1 };
+        }
+        function highlightKakao(e) { e.target.setStyle({ weight: 4, color: '#333', fillOpacity: 0.8 }); e.target.bringToFront(); }
+        function resetHighlightKakao(e) { LayerKakao.resetStyle(e.target); }
+
+        function getColorKesesuaianLahanSawit(d) {
+            if (!d) return 'grey';
+            var k = d.toUpperCase().trim();
+            return k === 'CUKUP SESUAI' ? '#ffeda0' : (k === 'SESUAI' ? '#feb24c' : (k === 'TIDAK SESUAI' ? '#e41a1c' : 'grey'));
+        }
+        function styleSawit(feature) {
+            var val = feature.properties.Klas || feature.properties.Kelas_Kesesuaian || feature.properties.nama;
+            return { fillColor: getColorKesesuaianLahanSawit(val), weight: 1, opacity: 1, color: 'white', dashArray: '0', fillOpacity: 1 };
+        }
+        function highlightSawit(e) { e.target.setStyle({ weight: 4, color: '#333', fillOpacity:0.5 }); e.target.bringToFront(); }
+        function resetHighlightSawit(e) { LayerSawit.resetStyle(e.target); }
+
+        function getColorKesesuaianLahanKaret(d) {
+            if (!d) return 'grey';
+            var k = d.toUpperCase().trim();
+            return k === 'CUKUP SESUAI' ? '#ffeda0' : (k === 'SESUAI' ? '#feb24c' : (k === 'TIDAK SESUAI' ? '#e41a1c' : 'grey'));
+        }
+        function styleKaret(feature) {
+            var val = feature.properties.Klas || feature.properties.Kelas_Kesesuaian || feature.properties.nama;
+            return { fillColor: getColorKesesuaianLahanKaret(val), weight: 1, opacity: 1, color: 'white', dashArray: '0', fillOpacity: 1 };
+        }
+        function highlightKaret(e) { e.target.setStyle({ weight: 4, color: '#333', fillOpacity:0.5 }); e.target.bringToFront(); }
+        function resetHighlightKaret(e) { LayerKaret.resetStyle(e.target); }
+
+        function getColorKesesuaianLahanPadi(d) {
+            if (!d) return 'grey';
+            var k = d.toUpperCase().trim();
+            return k === 'SANGAT SESUAI' ? '#31a354' : (k === 'CUKUP SESUAI' ? '#ffeda0' : (k === 'TIDAK SESUAI' ? '#e41a1c' : 'grey'));
+        }
+        function stylePadi(feature) {
+            var val = feature.properties.Klas || feature.properties.Kelas_Kesesuaian || feature.properties.nama;
+            return { fillColor: getColorKesesuaianLahanPadi(val), weight: 1, opacity: 1, color: 'white', dashArray: '0', fillOpacity: 1 };
+        }
+        function highlightPadi(e) { e.target.setStyle({ weight: 4, color: '#333', fillOpacity:0.5 }); e.target.bringToFront(); }
+        function resetHighlightPadi(e) { LayerPadi.resetStyle(e.target); }
+
+        // 5. DEKLARASI LAYER GEOJSON
+        var LayerDilam = new L.GeoJSON.AJAX("Batas Jorong Nagari Dilam.geojson", {
+            style: styleJorong,
+            onEachFeature: function(feature, layer) {
+                popUp(feature, layer);
+                var namaJorong = feature.properties.Dusun || feature.properties.Nama_Jorong || feature.properties.nama;
+                if (namaJorong) {
+                    layer.bindTooltip(namaJorong, { permanent: true, direction: 'center', className: 'label-jorong' });
+                }
+                layer.on({ mouseover: highlightJorong, mouseout: resetHighlightJorong });
+            }
+        }).addTo(map);
+
+        var LayerJalan = new L.GeoJSON.AJAX("Jalan Nagari Dilam.geojson", {
+            onEachFeature: popUp,
+            style: { color: "Red", weight: 1 }
+        }).addTo(map);
+
+        var LayerSundi = new L.GeoJSON.AJAX("Batas Jorong Kecamatan Bukit Sundi.geojson", {
+            onEachFeature: popUp,
+            style: { color: "gray", weight: 3, fillOpacity: 0 }
+        });
+
+        var LayerFasilitas = new L.GeoJSON.AJAX("Fasilitas Nagari Dilam.geojson", {
+            onEachFeature: popUpFasilitas,
+            pointToLayer: function (feature, latlng) {
+                return L.marker(latlng, {
+                    icon: L.divIcon({
+                        html: '<span style="font-size: 22px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.3));">🏢</span>',
+                        className: 'custom-bangunan-icon',
+                        iconSize: [15, 15],
+                        iconAnchor: [15, 15],
+                        popupAnchor: [0, -15]
+                    })
+                });
+            }
+        }).addTo(map);
+
+        var LayerUMKM = new L.GeoJSON.AJAX("UMKM Nagari Dilam.geojson", {
+            onEachFeature: popUpFasilitas,
+            pointToLayer: function (feature, latlng) {
+                return L.marker(latlng, {
+                    icon: L.divIcon({
+                        html: '<span style="font-size: 22px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.3));">📌</span>',
+                        className: 'custom-pin-icon',
+                        iconSize: [15, 15],
+                        iconAnchor: [15, 15],
+                        popupAnchor: [0, -15]
+                    })
+                });
+            }
+        });
+
+        // LAYER TITIK JALAN RUSAK 
+
+        var LayerJalanRusak = new L.GeoJSON.AJAX("Titik Jalan Rusak.geojson", {
+            onEachFeature: popUpJalanRusak,
+            pointToLayer: function (feature, latlng) {
+                return L.marker(latlng, {
+                    icon: L.divIcon({
+                        html: '<span style="font-size: 22px; filter: drop-shadow(0px 2px 2px rgba(0,0,0,0.3));">⚠️</span>',
+                        className: 'custom-pin-icon',
+                        iconSize: [15, 15],
+                        iconAnchor: [15, 15],
+                        popupAnchor: [0, -15]
+                    })
+                });
+            }
+        }).addTo(map);
+
+        var LayerKakao = new L.GeoJSON.AJAX("PETA KESESUAIAN LAHAN KAKAO.geojson", {
+            style: styleKakao, 
+            onEachFeature: function(feature, layer) {
+                popUp(feature, layer);
+                layer.on({ mouseover: highlightKakao, mouseout: resetHighlightKakao });
+            }
+        });
+
+        var LayerSawit = new L.GeoJSON.AJAX("PETA KESESUAIAN LAHAN SAWIT.geojson", {
+            style: styleSawit, 
+            onEachFeature: function(feature, layer) {
+                popUp(feature, layer);
+                layer.on({ mouseover: highlightSawit, mouseout: resetHighlightSawit });
+            }
+        });
+
+        var LayerKaret = new L.GeoJSON.AJAX("PETA KESESUAIAN LAHAN KARET.geojson", {
+            style: styleKaret, 
+            onEachFeature: function(feature, layer) {
+                popUp(feature, layer);
+                layer.on({ mouseover: highlightKaret, mouseout: resetHighlightKaret });
+            }
+        });
+
+        var LayerPadi = new L.GeoJSON.AJAX("PETA KESESUAIAN LAHAN PADI.geojson", {
+            style: stylePadi, 
+            onEachFeature: function(feature, layer) {
+                popUp(feature, layer);
+                layer.on({ mouseover: highlightPadi, mouseout: resetHighlightPadi });
+            }
+        });
+
+        // 6. KONTROL LEGENDA DINAMIS
+        var legend = L.control({position: 'bottomright'});
+
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'info legend');
+            updateLegend(div);
+            return div;
+        };
+
+        function updateLegend(divContainer) {
+            var targetDiv = divContainer || document.querySelector('.info.legend');
+            if (!targetDiv) return;
+
+            var htmlContent = "";
+            var adaPadi = false, adaSawit = false, adaKaret = false, adaKakao = false;
+
+            map.eachLayer(function(layer) {
+                if (layer.options && layer.options.style) {
+                    if (layer.options.style === stylePadi) adaPadi = true;
+                    if (layer.options.style === styleSawit) adaSawit = true;
+                    if (layer.options.style === styleKaret) adaKaret = true;
+                    if (layer.options.style === styleKakao) adaKakao = true;
+                }
+            });
+
+            if (adaPadi) {
+                var kelasPadi = ['SANGAT SESUAI', 'CUKUP SESUAI', 'TIDAK SESUAI'];
+                htmlContent += "<div class='legend-section'><h4>🌾 Legenda Padi</h4>";
+                for (var i = 0; i < kelasPadi.length; i++) {
+                    htmlContent += '<i style="background:' + getColorKesesuaianLahanPadi(kelasPadi[i]) + '"></i> ' + kelasPadi[i] + '<br>';
+                }
+                htmlContent += "</div>";
+            }
+
+            if (adaSawit) {
+                var kelasSawit = ['CUKUP SESUAI', 'SESUAI', 'TIDAK SESUAI'];
+                htmlContent += "<div class='legend-section'><h4>🌴 Legenda Sawit</h4>";
+                for (var j = 0; j < kelasSawit.length; j++) {
+                    htmlContent += '<i style="background:' + getColorKesesuaianLahanSawit(kelasSawit[j]) + '"></i> ' + kelasSawit[j] + '<br>';
+                }
+                htmlContent += "</div>";
+            }
+
+            if (adaKaret) {
+                var kelasKaret = ['CUKUP SESUAI', 'SESUAI', 'TIDAK SESUAI'];
+                htmlContent += "<div class='legend-section'><h4>🛞 Legenda Karet</h4>";
+                for (var k = 0; k < kelasKaret.length; k++) {
+                    htmlContent += '<i style="background:' + getColorKesesuaianLahanKaret(kelasKaret[k]) + '"></i> ' + kelasKaret[k] + '<br>';
+                }
+                htmlContent += "</div>";
+            }
+
+            if (adaKakao) {
+                var kelasKakao = ['SESUAI', 'TIDAK SESUAI'];
+                htmlContent += "<div class='legend-section'><h4>🍫 Legenda Kakao</h4>";
+                for (var l = 0; l < kelasKakao.length; l++) {
+                    htmlContent += '<i style="background:' + getColorKesesuaianLahanKakao(kelasKakao[l]) + '"></i> ' + kelasKakao[l] + '<br>';
+                }
+                htmlContent += "</div>";
+            }
+
+            if (htmlContent === "") {
+                targetDiv.style.display = 'none';
+            } else {
+                targetDiv.style.display = 'block';
+                targetDiv.innerHTML = htmlContent;
+            }
+        }
+
+        legend.addTo(map);
+
+        map.on('layeradd layerremove', function(event) {
+            updateLegend();
+        });
+
+        // 7. STRUKTUR KONTROL MENU LAYER
+        var baseMaps = {
+            "OpenStreetMap": OSM,
+            "IMAGINARY": SATELIT,
+            "TOPOGRAFI": TERRAIN
+        };
+
+        var overlayMaps = {
+            "<span style='font-weight: bold; color: #2c3e50;'>-- BATAS WILAYAH --</span>": L.layerGroup(),
+            "&nbsp;&nbsp;&nbsp;&nbsp; Batas Jorong Nagari Dilam": LayerDilam,
+            "&nbsp;&nbsp;&nbsp;&nbsp; Batas Jorong Bukit Sundi": LayerSundi,
+            "&nbsp;&nbsp;&nbsp;&nbsp; Jalan Nagari Dilam": LayerJalan,
+
+            "<span style='font-weight: bold; color: #2c3e50;'>-- POTENSI WILAYAH --</span>": L.layerGroup(),
+            "&nbsp;&nbsp;&nbsp;&nbsp; 📌 Titik UMKM ": LayerUMKM,
+            "&nbsp;&nbsp;&nbsp;&nbsp; 🏢 Fasilitas Nagari Dilam": LayerFasilitas,
+            "&nbsp;&nbsp;&nbsp;&nbsp; 🍫 Kesesuaian Lahan Kakao": LayerKakao,
+            "&nbsp;&nbsp;&nbsp;&nbsp; 🌴 Kesesuaian Lahan Sawit": LayerSawit,
+            "&nbsp;&nbsp;&nbsp;&nbsp; 🛞 Kesesuaian Lahan Karet": LayerKaret,
+            "&nbsp;&nbsp;&nbsp;&nbsp; 🌾 Kesesuaian Lahan Padi": LayerPadi,
+          
+
+            "<span style='font-weight: bold; color: #2c3e50;'>-- MASALAH WILAYAH --</span>": L.layerGroup(),
+             "&nbsp;&nbsp;&nbsp;&nbsp; ⚠️ Titik Jalan Rusak ": LayerJalanRusak,    
+        };
+
+        L.control.layers(baseMaps, overlayMaps, { collapsed: true }).addTo(map);
+    </script>
+</body>
+</html>
