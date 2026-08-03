@@ -122,6 +122,37 @@
             }
         }
 
+        //UMKM POP UP GAMBAR
+         function popUpUMKM(f, l) {
+            var out = [];
+            if (f.properties) {
+                for (var key in f.properties) {
+                    // Abaikan kolom foto di daftar teks biasa
+                    if (key !== 'FOTO' && key.toUpperCase() !== 'FOTO' && key.toLowerCase() !== 'gambar') {
+                out.push("<b>" + key + ":</b> " + f.properties[key]);
+                    }
+                }
+                
+                var popupContent = out.join("<br />");
+
+                // Deteksi nama/path gambar dari atribut
+                var fotoPath = f.properties.FOTO || f.properties.foto || f.properties.Gambar;
+                
+                if (fotoPath && fotoPath.trim() !== "" && fotoPath !== "nama_file.jpg") {
+                    popupContent += "<br/><br/><img src='" + fotoPath + "' style='width: 100%; max-width: 200px; height: auto; border-radius: 6px; display: block; margin: 5px auto 0;' alt='Foto Lokasi' />";
+                }
+
+                var customPopup = L.popup({
+                    className: 'popup-UMKM',
+                    closeButton: true,
+                    maxWidth: 220
+                }).setContent(popupContent);
+                
+                l.bindPopup(customPopup);
+            }
+        }
+
+
         function popUpFasilitas(f, l) {
             var out = [];
             if (f.properties) {
@@ -304,7 +335,7 @@
         }).addTo(map);
 
         var LayerUMKM = new L.GeoJSON.AJAX("UMKM Nagari Dilam.geojson", {
-            onEachFeature: popUpFasilitas,
+            onEachFeature: popUpUMKM,
             pointToLayer: function (feature, latlng) {
                 return L.marker(latlng, {
                     icon: L.divIcon({
@@ -316,7 +347,7 @@
                     })
                 });
             }
-        });
+        }).addTo(map);
 
         // LAYER TITIK JALAN RUSAK 
 
