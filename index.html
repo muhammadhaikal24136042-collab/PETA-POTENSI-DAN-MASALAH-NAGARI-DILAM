@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PETA POTENSI DAN MASALAH DI NAGARI DILAM</title>
@@ -11,6 +12,14 @@
     
     <!-- LEAFLET AJAX CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-ajax/2.1.0/leaflet.ajax.min.js"></script>
+
+
+  <!-- Font Awesome (Untuk Icon GPS) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    
+    <!-- Leaflet LocateControl CSS & JS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.css" />
+    <script src="https://cdn.jsdelivr.net/npm/leaflet.locatecontrol/dist/L.Control.Locate.min.js" charset="utf-8"></script>
 
     <style>
         .info.legend {
@@ -500,6 +509,63 @@
         };
 
         L.control.layers(baseMaps, overlayMaps, { collapsed: true }).addTo(map);
+
+        // 8. KONTROL GPS / LOKASI PENGGUNA (Leaflet LocateControl)
+        L.control.locate({
+            position: 'topleft', // Posisi tombol GPS
+            strings: {
+                title: "Tampilkan lokasi saya saat ini", // Teks saat kursor diarahkan ke tombol
+                popup: "Lokasi Anda berada dalam radius {distance} {unit} dari titik ini",
+                outsideMapBoundsMsg: "Lokasi Anda berada di luar batas peta ini"
+            },
+            locateOptions: {
+                maxZoom: 16,
+                enableHighAccuracy: true // Menggunakan GPS tingkat akurasi tinggi pada HP
+            },
+            flyTo: true, // Animasi pergerakan kamera halus
+            showCompass: true // Menampilkan arah hadap jika didukung perangkat
+        }).addTo(map);
+
+        // 9. TOMBOL KEMBALI KE LOKASI AWAL (HOME)
+        var HomeControl = L.Control.extend({
+            options: {
+                position: 'topleft' // Akan diletakkan di dekat tombol zoom dan GPS
+            },
+
+            onAdd: function(map) {
+                // Membuat container untuk tombol
+                var container = L.DomUtil.create('div', 'leaflet-bar leaflet-control leaflet-control-custom');
+                
+                // Styling tombol agar mirip dengan tombol bawaan Leaflet
+                container.style.backgroundColor = 'white';
+                container.style.width = '34px';
+                container.style.height = '34px';
+                container.style.cursor = 'pointer';
+                container.style.display = 'flex';
+                container.style.justifyContent = 'center';
+                container.style.alignItems = 'center';
+                container.title = 'Kembali ke Lokasi Observasi (Nagari Dilam)'; // Teks saat di-hover
+
+                // Menggunakan icon rumah (Home) dari Font Awesome
+                container.innerHTML = '<i class="fas fa-home" style="font-size: 16px; color: #333;"></i>';
+
+                // Fungsi saat tombol diklik
+                container.onclick = function(e) {
+                    e.stopPropagation(); // Mencegah klik tembus ke peta di bawahnya
+                    // Mengembalikan peta ke koordinat awal Nagari Dilam dengan zoom 13
+                    map.flyTo([-0.916330734071813, 100.73975708080601], 13);
+                }
+
+                // Efek hover pada tombol
+                container.onmouseover = function() { container.style.backgroundColor = '#f4f4f4'; }
+                container.onmouseout = function() { container.style.backgroundColor = 'white'; }
+
+                return container;
+            }
+        });
+
+        // Tambahkan tombol ke dalam peta
+        map.addControl(new HomeControl());
     </script>
 </body>
 </html>
